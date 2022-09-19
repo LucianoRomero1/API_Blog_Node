@@ -44,29 +44,31 @@ const createArticle = (req, res) => {
 };
 
 const getArticles = (req, res) => {
-  //exec parece ser mejor que hacer el callback dentro de find
-  //-1 es como hacer un order DESC
-  let query = Article.find({});
+  setTimeout(() => {
+    //exec parece ser mejor que hacer el callback dentro de find
+    //-1 es como hacer un order DESC
+    let query = Article.find({});
 
-  if (req.params.last) {
-    //Solo meto el limite si llega un valor por parámetro
-    query.limit(3);
-  }
-
-  query.sort({ date: -1 }).exec((error, articles) => {
-    if (error || !articles) {
-      return res.status(404).json({
-        status: "error",
-        message: "Articles not found",
-      });
+    if (req.params.last) {
+      //Solo meto el limite si llega un valor por parámetro
+      query.limit(3);
     }
 
-    return res.status(200).send({
-      status: "success",
-      count: articles.length,
-      articles: articles,
+    query.sort({ date: -1 }).exec((error, articles) => {
+      if (error || !articles) {
+        return res.status(404).json({
+          status: "error",
+          message: "Articles not found",
+        });
+      }
+
+      return res.status(200).send({
+        status: "success",
+        count: articles.length,
+        articles: articles,
+      });
     });
-  });
+  }, 3000);
 };
 
 const getOneArticle = (req, res) => {
@@ -213,9 +215,9 @@ const image = (req, res) => {
   let physicalPath = "./img/articles/" + file;
 
   fileSystem.stat(physicalPath, (error, exist) => {
-    if(exist){
+    if (exist) {
       return res.sendFile(path.resolve(physicalPath));
-    }else{
+    } else {
       return res.status(404).json({
         status: "error",
         message: "Imagen doesn't exist",
@@ -228,33 +230,35 @@ const seeker = (req, res) => {
   //Sacar el string de la busqueda
   let search = req.params.search;
 
-  //Find OR 
-  Article.find({"$or": [
-    //Con la i en options pongo que el titulo incluya el string de busqueda
-    {"title": {"$regex": search, "$options": "i"}},
-    {"content": {"$regex": search, "$options": "i"}},
-  ]})
-  .sort({date: -1})
-  .exec((error, foundArticles) => {
-    if(error || !foundArticles || foundArticles.length <= 0){
-      return res.status(404).json({
-        status: "error",
-        message: "No results found",
-      });
-    }
+  //Find OR
+  Article.find({
+    $or: [
+      //Con la i en options pongo que el titulo incluya el string de busqueda
+      { title: { $regex: search, $options: "i" } },
+      { content: { $regex: search, $options: "i" } },
+    ],
+  })
+    .sort({ date: -1 })
+    .exec((error, foundArticles) => {
+      if (error || !foundArticles || foundArticles.length <= 0) {
+        return res.status(404).json({
+          status: "error",
+          message: "No results found",
+        });
+      }
 
-    return res.status(200).json({
-      status: "success",
-      foundArticles
-    })
-  });
+      return res.status(200).json({
+        status: "success",
+        foundArticles,
+      });
+    });
 
   //Orden
 
   //Ejecutar consulta
 
   //Devolver resultado
-}
+};
 
 module.exports = {
   createArticle,
@@ -264,5 +268,5 @@ module.exports = {
   editArticle,
   uploadFile,
   image,
-  seeker
+  seeker,
 };
