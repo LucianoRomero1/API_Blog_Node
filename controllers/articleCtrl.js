@@ -44,31 +44,29 @@ const createArticle = (req, res) => {
 };
 
 const getArticles = (req, res) => {
-  setTimeout(() => {
-    //exec parece ser mejor que hacer el callback dentro de find
-    //-1 es como hacer un order DESC
-    let query = Article.find({});
+  //exec parece ser mejor que hacer el callback dentro de find
+  //-1 es como hacer un order DESC
+  let query = Article.find({});
 
-    if (req.params.last) {
-      //Solo meto el limite si llega un valor por parámetro
-      query.limit(3);
+  if (req.params.last) {
+    //Solo meto el limite si llega un valor por parámetro
+    query.limit(3);
+  }
+
+  query.sort({ date: -1 }).exec((error, articles) => {
+    if (error || !articles) {
+      return res.status(404).json({
+        status: "error",
+        message: "Articles not found",
+      });
     }
 
-    query.sort({ date: -1 }).exec((error, articles) => {
-      if (error || !articles) {
-        return res.status(404).json({
-          status: "error",
-          message: "Articles not found",
-        });
-      }
-
-      return res.status(200).send({
-        status: "success",
-        count: articles.length,
-        articles: articles,
-      });
+    return res.status(200).send({
+      status: "success",
+      count: articles.length,
+      articles: articles,
     });
-  }, 3000);
+  });
 };
 
 const getOneArticle = (req, res) => {
